@@ -1,0 +1,6 @@
+deploy.sh
+deploy-manual.sh
+2025-07-01_19-21Z-que-faire-avec-le-fichier-firebase.md
+2025-07-02_22-40Z-créer-un-dashboard-personnalisé.md
+.specstory/history/2025-07-01_19-21Z-que-faire-avec-le-fichier-firebase.md
+.specstory/history/2025-07-02_22-40Z-créer-un-dashboard-personnalisé.md 

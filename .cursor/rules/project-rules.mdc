@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Ne modifiez que le code directement lié à la demande spécifique. Évitez de modifier des fonctionnalités sans rapport avec la demande.
+- Ne remplacez jamais le code par des espaces réservés.
+- Incluez toujours le code complet.
+- Divisez les problèmes en étapes plus petites. Réfléchissez à chaque étape séparément avant de la mettre en œuvre.
+- Fournissez toujours un PLAN complet avec des RAISONS basées sur des preuves provenant du code et des journaux avant d'effectuer des changements.
+- Expliquez clairement vos OBSERVATIONS, puis fournissez une RAISON pour identifier le problème exact. Ajoutez les journaux de la console si nécessaire pour recueillir plus d'informations.
+- Toujours relancer le projet aprèes un changement en forcant le port 5174 pour que l'application redémarre sur http://localhost:5174
+- Ne jamais faire une tâche qui n'a pas été demandé
+- Lorsque j'écris l'expression Je quitte dans la concersation, tu fait une sauvegarde du code en nommant le projet/date de la sauvegarde/heure de la sauvegarde. 
+- Avant toute modification d’un fichier, je t’explique exactement ce que je veux faire et pourquoi.
+- J’attends ta validation (un simple "oui" ou "vas-y") avant d’appliquer le moindre changement.
+- Aucune action destructive ou de remplacement automatique ne sera faite sans autorisation.

@@ -1,0 +1,795 @@
+---
+description: AI rules derived by SpecStory from the project AI interaction history
+globs: *
+---
+
+## PROJECT RULES
+
+### General Principles
+- **Do No Harm:** The primary directive is to avoid actions that could disrupt the project, introduce errors, or cause data loss.
+- **Respect User Intent:** The assistant should carefully analyze user requests to accurately determine their goals and provide the most relevant assistance.
+- **Transparency:** The assistant should clearly communicate its actions and reasoning to the user.
+- **Minimal Intervention:** Modify code only when strictly necessary and directly related to the user's request.
+- **Prioritize Stability:** Favour solutions that maintain the stability and integrity of the existing codebase.
+- **Err on the side of caution:** It's better to make too few changes than too many. The AI must ask for explicit user confirmation before performing potentially destructive actions (e.g., deleting files, overwriting code). The AI must not perform automated destructive or replacement actions without explicit user consent.
+
+### Troubleshooting and Debugging
+- **Provide Explanations:** When identifying errors, explain the root cause and suggest solutions.
+- **Offer Multiple Approaches:** If possible, provide both quick fixes and more robust solutions.
+- **Verify Solutions:** After applying a fix, verify that the error is resolved and that no new issues have been introduced.
+- **Logs and Emojis:** Use console logs with emojis to clearly indicate the status of different operations (e.g., ✅ for success, ❌ for error).
+- **.env files**: When setting up the project the AI must remember to look for, and if not present, create a `.env.local` file.
+
+### Respecting User Preferences
+- **Adherence to Directives:** Strictly follow the user's instructions, even if they seem unconventional.
+- **Avoid Unsolicited Changes:** Do not make changes or offer suggestions that are outside the scope of the user's request.
+- **Prioritize User-Specified Styles:** When generating code, prefer existing styles and conventions over personal preferences.
+
+### Dashboard Admin Finalization Strategy
+- The primary strategy is to finalize the Dashboard Admin first.
+- Once the Dashboard Admin is clean and functional, remove or hide unnecessary pages for other user profiles (teacher, student, etc.).
+- The AI should analyze the `Plansite.png` diagram located in the public directory to understand the dashboard structure.
+- Before proposing a plan of action, the AI must inspect existing pages and components related to the Dashboard Admin to assess their current state.
+- The AI should list pages/components related to the Dashboard Admin and identify their state (complete, partial, to finalize, to remove).
+- The AI should analyze `layout.png` located in the public directory to understand the application's visual layout.
+
+## TECH STACK
+
+### Core Technologies
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- Firebase (Firestore, Authentication, Hosting)
+
+### Libraries & Tools
+- Lucide React
+- date-fns
+- Jest (testing)
+- react-select
+
+### Version Control
+- Git
+
+### Notes on Versions
+- React Router will begin wrapping state updates in v7.
+- Relative route resolution within Splat routes is changing in v7.
+
+### Authentication
+- Google OAuth
+- Microsoft OAuth
+- Firebase Authentication
+
+### Configuration Management
+- Vite uses `import.meta.env` for environment variables.
+
+## PROJECT DOCUMENTATION & CONTEXT SYSTEM
+
+### Key Documents
+- `README.md`: Project overview and setup instructions
+- `DEPLOYMENT_GUIDE.md`: Instructions for deploying the application
+- `EXPLANATION_DOMAINES_AUTORISES.md`: (fr) Explains authorized domains
+- `GUIDE_VISUEL_GOOGLE_AUTH.md`: (fr) Visual guide to Google Auth
+- `GUIDE_CREATION_UTILISATEUR_FIREBASE.md`: (fr) Guide to creating Firebase users
+- `RESOLUTION_ERREURS_AUTHENTIFICATION.md`: (fr) Guide to resolving authentication errors
+- `SOLUTION_DEFINITIVE_CLOUD_RUN.md`: (fr) Guide to a definitive solution for Cloud Run
+- `MISE_A_JOUR_REPERTOIRE_RACINE.md`: (fr) Guide to updating the root directory
+- `RESUME_FINAL_AUTHENTICATION.md`: (fr) Final summary of authentication setup
+- `OAUTH_SETUP.md`: Instructions for setting up Google Classroom OAuth
+- `STRATEGIE_COMPLETE_MUSIQUECONNECT.md`: (fr) Complete strategy for MusiqueConnect
+- `STUDENT_DASHBOARD_DESIGN.md`: (fr) Student dashboard design
+- `TEST_MUSIQUECONNECT_APP.md`: (fr) Testing MusiqueConnect app
+- `VERCEL_DEPLOYMENT.md`: (fr) Vercel deployment guide
+- `VERIFICATION_RAPIDE.md`: (fr) Quick verification guide
+- `DEPLOYMENT_GUIDE.md`: (fr) Deployment guide
+- `DEPLOYMENT_MUSIQUECONNECT_APP.md`: (fr) Deployment guide for MusiqueConnect app
+- `BACKUP_GUIDE.md`: (fr) Backup guide
+- `ACCES_PROPRIETAIRE.md`: (fr) Owner access guide
+- `DEMO_ACCOUNTS.md`: (fr) List of demo accounts
+- `CONFIGURATION_CLOUDFLARE_FIREBASE_VERCEL.md`: (fr) Configuration guide for Cloudflare, Firebase, and Vercel
+- `CONFORMITE_LOI_23.md`: (fr) Compliance with Law 23
+- `DEPLOYMENT_FINAL_STEPS.md`: (fr) Final deployment steps
+- `BASE_DE_CONNAISSANCES_MANQUANTES.md`: (fr) Missing knowledge base
+- `BASE_DE_DONNEES_IMPLEMENTEE.md`: (fr) Implemented database
+- `OAUTH_SETUP.md`: (fr) Google OAuth Setup
+- `REPERTOIRE_RACINE.md`: (fr) Root directory
+- `GUIDE_AUTHENTIFICATION_COMPLETE.md`: (fr) Complete Authentication Guide
+- `DEPLOY_CLOUD_RUN.md`: (fr) Cloud Run Deployment Guide
+- `NOUVEAU_CLIENT_OAUTH.md`: (fr) New OAuth Client
+- `GUIDE_NOUVEAU_CLIENT_OAUTH.md`: (fr) New OAuth Client
+
+### Notes
+- EXPLANATION_DOMAINES_AUTORISES.md: Explains authorized domains. Keep domains up to date.
+- `Plansite.png`: Application dashboard logic diagram. Located in the public directory.
+- `layout.png`: Application layout diagram. Located in the public directory.
+
+## CODING STANDARDS
+
+### General
+- **React Components:** Functional components with hooks are preferred.
+- **TypeScript:** Use TypeScript for all components and data structures.
+- **Tailwind CSS:** Utilize Tailwind CSS classes for styling.
+- **Code Organization:** Organize code into logical modules and directories.
+
+### React Components
+- **Naming Conventions:** Use PascalCase for component file names (e.g., `MyComponent.tsx`).
+- **Props:** Define prop interfaces for each component.
+- **State Management:** Use React's `useState` hook for local component state.
+
+### TypeScript
+- **Strict Typing:** Use strict typing to prevent errors.
+- **Interfaces:** Define interfaces for data structures and component props.
+- **Enums:** Use enums for predefined values.
+
+### Tailwind CSS
+- **Utility Classes:** Utilize Tailwind CSS utility classes for styling.
+- **Custom Styles:** If necessary, add custom styles in `src/index.css`.
+- **Responsive Design:** Use responsive modifiers (e.g., `md:`, `lg:`) for different screen sizes.
+
+### File Naming
+- Component files: `PascalCase.tsx` (e.g., `TeacherDashboard.tsx`)
+- Style files: CamelCase (e.g., `styles.css`)
+- Configuration files: camelCase (e.g., `vite.config.ts`)
+
+### Authentication
+- All authentication logic should be handled by `src/services/authService.ts`.
+- All UI elements should use the `AuthContext` to hook into authentication state.
+- Use `AuthErrorType` enum for error handling.
+
+### Firebase
+- All Firebase logic should be handled by `src/services/firebaseService.ts`.
+- Firebase configuration should be stored in `.env.local` and accessed via `import.meta.env`.
+
+### Code Comments & Documentation
+
+- Emojis can be useful to highlight sections, logs, and debugging (e.g., ✅/❌).
+- Console logs should use emojis (🔍/✅/❌) to denote different authentication states.
+
+### Sidebar Button
+- When adding a button to the sidebar, especially within the Admin Dashboard, use the `SidebarButton` component with the following properties:
+    - `icon`: The icon for the button (e.g., `<DollarSign className="w-5 h-5 text-emerald-500" />`).
+    - `label`: The text label for the button (e.g., `"Budget"`).
+    - `count`: The count to display next to the label (can be `null`).
+    - `active`: A boolean indicating whether the button is currently active (e.g., `activeTab==='budget'`).
+    - `onClick`: A function to call when the button is clicked (e.g., `()=>navigateToTab('budget')`).
+
+## DEBUGGING
+
+### General Debugging
+- **Console Logging:** Use `console.log` statements strategically to track data flow and identify issues.
+- **Browser Developer Tools:** Utilize Chrome DevTools or Firefox Developer Tools for inspecting elements, debugging JavaScript, and analyzing network requests.
+- **React Developer Tools:** Use the React Developer Tools browser extension to inspect the component tree and component props.
+
+### Authentication Debugging
+- **Console Logs:** Add console logs with emojis (🔍/✅/❌) in `src/services/authService.ts` to track authentication flow and identify errors.
+- **Firebase Console:** Check the Firebase Console for authentication attempts and error logs.
+- **Error Messages:** Ensure that error messages are clear and informative.
+- **Local Storage:** User authentication state should be persisted automatically in localStorage.
+
+### Firebase Debugging
+- **Firestore Rules:** Ensure Firestore rules are correctly configured to allow read/write access.
+- **Data Types:** Verify that data types in Firestore match the expected types in your application.
+
+## WORKFLOW & RELEASE RULES
+
+### Branching
+- Use feature branches for new development.
+
+### Committing
+- Write clear and concise commit messages.
+- Use descriptive branch names.
+- Avoid committing secrets (API keys, tokens) directly in the code. Use environment variables instead. If a secret is accidentally committed, follow GitHub's guidelines to remove it from the repository history.
+
+### Pull Requests
+- Code must be reviewed before merging to the main branch.
+- Create pull requests for code review before merging changes.
+- Focus on code quality, maintainability, and performance.
+- Ensure code adheres to project coding standards.
+- Check for potential security vulnerabilities.
+- Verify that tests cover all relevant code paths.
+- Ensure code is well-documented.
+- Ensure all tests pass before submitting a pull request.
+- Get approval from at least one other team member before merging.
+
+### Deployment
+- Ensure Cloudflare Configuration Make sure your DNS records on Cloudflare are pointing to the correct server (either Vercel or Firebase).
+- Deployments to production should be triggered manually.
+- Use automated deployment scripts where possible.
+- Verify the deployment on a staging environment before deploying to production.
+
+### Versioning
+- Use semantic versioning (SemVer) for releases.
+
+### Automated Tasks
+- Automate deployment processes as much as possible (e.g., using GitHub Actions).
+
+## DEBUGGING
+### Bonnes pratiques
+- Utilise la console du navigateur pour afficher les logs et les erreurs.
+- Vérifie le code source pour trouver les erreurs de syntaxe ou de logique.
+- Teste les différentes fonctionnalités pour identifier les problèmes.
+- Utilise un outil de debugging pour suivre l’exécution du code pas à pas.
+
+### Codes d’erreur courants
+- `auth/internal-error` : Erreur interne Firebase Auth (problème de configuration OAuth).
+- `auth/api-key-not-valid` : Clé API Firebase invalide.
+- `Missing or insufficient permissions` : Règles de sécurité Firestore incorrectes.
+- `auth/unauthorized-domain` : Domaine non autorisé dans Firebase Auth.
+- `400 (Bad Request)` : Problème de requête HTTP (souvent lié à la clé API).
+
+### Console Browser
+
+- Use emojis (🔍/✅/❌) to denote different authentication states.
+- The logs of authentication appear in the console with emojis :
+- 🔍 Début de fonction
+- ✅ Succès
+- ❌ Erreur
+- 🔐 Tentative de connexion
+
+### Firebase Console
+1. Allez dans **Authentication > Users**
+2. Vérifiez les tentatives de connexion
+3. Consultez les logs d'erreur
+
+### React Router
+- ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7.
+- ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7.
+
+### Vite
+- Vite doesn’t authorize image imports from public folders using `import ... from...`.
+- Use the absolute path `/logos/title.png` in the JSX/HTML, **not** a JS/TS import.
+- When encountering 'Property 'env' does not exist on type 'ImportMeta', ensure 'src/vite-env.d.ts' exists with '/// <reference types="vite/client" />'. A complete IDE/editor restart is often necessary.
+
+## UI & UX RULES
+
+### General UI Rules
+- Maintain a consistent and professional design.
+- Use clear and concise labels.
+- Provide helpful feedback to the user.
+- Ensure the interface is responsive and accessible.
+
+### Tailwind CSS
+- Use consistent Tailwind CSS classes for styling.
+- Keep a balance between esthetics and usability.
+
+### Visual Hierarchy
+- Use font sizes, colors, and spacing to create a clear visual hierarchy.
+- Prioritize important information and actions.
+
+### Color Scheme
+- Primary color: `#1473AA` (MusiqueConnect blue)
+- Use a consistent color palette throughout the application.
+
+### Buttons
+- Primary buttons: Use the MusiqueConnect blue (`#1473AA`) with a darker hover state.
+- Actions: For primary actions (like "Create"), use the brand color. For destructive actions (like "Delete"), use red.
+- 3D Effet: All main buttons must have a 3D effect when clicked: `active:scale-95 active:shadow-inner active:bg-[#106099]`.
+- Use emojis (✅/❌) to denote different authentication states.
+
+### Typography
+- Use a clear and readable font.
+- Ensure consistent text sizes and styles.
+
+### Form Design
+- Use clear labels for all form fields.
+- Provide helpful error messages for invalid inputs.
+- Use consistent styling for all form elements.
+
+### Data Display
+- Use tables or grids to display data in a structured format.
+- Use clear column headers.
+- Provide sorting and filtering options where appropriate.
+
+### Layout
+- Use a consistent layout across all pages.
+- Keep the interface clean and uncluttered.
+- **Sidebar Navigation**:
+    -The primary navigation is located in the sidebar.
+    -Use clear and concise labels for all navigation items.
+    -Highlight the active navigation item.
+- **Top Navigation**:
+    -The top navigation should provide access to user-specific settings and information.
+    -Include a clear logout button.
+- **Central Layout**:
+    -Use the central area to display the primary content for the selected navigation item.
+    -Make use of available space to provide a clear and focused experience.
+
+### User Feedback
+- Provide visual feedback for actions (e.g., button clicks, form submissions).
+- Use clear and concise messages for errors and warnings.
+- Show progress indicators for long-running tasks.
+
+### Accessibility
+- Use semantic HTML elements.
+- Provide alternative text for images.
+- Ensure sufficient color contrast.
+- Make the application navigable using the keyboard.
+
+## AUTHENTICATION RULES
+
+### Firebase Authentication
+- Use Firebase Authentication for user sign-in and sign-up.
+- Implement secure password storage.
+- Handle authentication errors gracefully.
+
+### Google OAuth
+- Use Google OAuth for authentication.
+- Configure the OAuth 2.0 client in the Google Cloud Console.
+- Add the required scopes to the OAuth 2.0 client.
+- Handle authentication errors gracefully.
+- Ensure user data is stored securely.
+
+### Microsoft OAuth
+- Use Microsoft OAuth for authentication.
+- Configure the Azure AD application.
+- Add the required permissions to the Azure AD application.
+- Handle authentication errors gracefully.
+- Ensure user data is stored securely.
+
+### Multi-Factor Authentication
+- Consider implementing multi-factor authentication for enhanced security.
+
+### Password Reset
+- Implement a secure password reset process.
+
+## FIREBASE RULES
+
+### Firestore Rules
+- Use Firebase Security Rules to protect your data in Firestore.
+- Define rules to restrict access based on user authentication and roles.
+- Ensure that only authorized users can read and write data.
+
+### Storage Rules
+- Use Firebase Storage Rules to protect files in Cloud Storage.
+- Define rules to restrict access based on user authentication and roles.
+- Ensure that only authorized users can upload and download files.
+
+## FIREBASE SETUP
+
+### Firebase Configuration
+- Store Firebase configuration in `.env.local` and access via `import.meta.env`.
+- The Firebase configuration object should include:
+  - `apiKey`
+  - `authDomain`
+  - `projectId`
+  - `storageBucket`
+  - `messagingSenderId`
+  - `appId`
+  - `databaseURL` (if using Realtime Database)
+
+### Firebase Authentication
+- Enable Google and Email/Password sign-in methods in the Firebase Console.
+- Add authorized domains in the Firebase Console.
+- Configure OAuth 2.0 client in the Google Cloud Console.
+
+### Firebase Hosting
+- Configure Firebase Hosting to serve your application.
+- Deploy your application to Firebase Hosting using the Firebase CLI.
+
+## FIREBASE DEPLOYMENT
+
+### Deployment Steps
+1. Build the application: `npm run build`
+2. Deploy to Firebase: `firebase deploy --only hosting`
+
+### Google Cloud Run
+- Use a `Dockerfile` to containerize your application.
+- Configure the application to listen on port 8080.
+- Deploy the container to Google Cloud Run.
+
+## DEPLOYMENT
+
+### Automated Deployments
+- Use automated deployment scripts for consistent and reliable deployments.
+- Automate tasks such as building, testing, and deploying the application.
+
+### Cloud Functions
+- Deploy Cloud Functions to handle server-side logic.
+- Ensure that Cloud Functions are properly secured.
+
+## ROLES & PERMISSIONS
+
+### Role-Based Access Control (RBAC)
+- Implement role-based access control to restrict access to certain features based on user roles.
+- Define roles such as "admin", "teacher", and "student".
+- Use these roles in Firestore rules and in your application code to control access.
+
+### User Roles
+- **Admin**: Full access
+- **Teacher**: Access to teacher-specific features
+- **Student**: Access to student-specific features
+
+### Special Accounts
+- Accounts `info@guillaumehetu.com` and `guillaumehetu1@gmail.com` are pre-configured as admins with password `Appmus2025`.
+- Domains `@educrm.ca` have automatic free access.
+
+## GOOGLE CLOUD SETTINGS
+* The project ID must be the same in Google Cloud and Firebase.
+* Google+ API may need to be enabled in Google Cloud Console.
+
+## GOOGLE AUTHENTICATION
+
+### 1. Enable Google Auth in Firebase
+* Go to Firebase Console > Authentication > Sign-in method
+* Enable the Google provider
+
+### 2. Configure Authorized Domains
+* In the same Firebase Auth section, add these domains:
+    * `localhost`
+    * `musiqueconnect.app`
+    * `musiqueconnect-ac841.web.app`
+
+### 3. Google Cloud Console Settings
+* Go to Google Cloud Console > APIs & Services > Credentials
+* Find your OAuth 2.0 Client ID used by Firebase
+* Verify the Authorized JavaScript origins:
+    * `https://musiqueconnect.app`
+    * `http://localhost:5174`
+    * `https://musiqueconnect-ac841.web.app`
+* Verify the Authorized redirect URIs:
+    * `https://musiqueconnect.app/__/auth/handler`
+    * `http://localhost:5174/__/auth/handler`
+    * `https://musiqueconnect-ac841.web.app/__/auth/handler`
+
+### Google OAuth Client
+* Ensure the Google Cloud project is the same as the Firebase project.
+* If you have restricted the API key, make sure it authorizes "Identity Toolkit API" and "OAuth2".
+
+### Troubleshooting Google Auth
+* If you see “La connexion Google n’est pas activée”, refais les étapes 1 et 4.
+* If you see “Email ou mot de passe incorrect”, vérifie que l’utilisateur existe dans Firebase Auth.
+* If you see "La connexion Google n'est pas activée", verify Google is enabled in Firebase Console and check authorized domains.
+* If you see "Email ou mot de passe incorrect", verify that the email/password is enabled in Firebase and check Firestore rules.
+* If you see "Popup fermé par l'utilisateur", authorize popups for the site and check ad blockers.
+* If you see "Erreur de connexion réseau", verify your internet connection and firewall rules.
+* If the client OAuth is not well configured, the error is FirebaseError: auth/internal-error.
+
+### Google Auth Test
+* Test the Google connection on `http://localhost:5174/test-google`.
+
+### Google Auth Error Types
+```typescript
+enum AuthErrorType {
+  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  EMAIL_ALREADY_EXISTS = 'EMAIL_ALREADY_EXISTS',
+  WEAK_PASSWORD = 'WEAK_PASSWORD',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  POPUP_CLOSED = 'POPUP_CLOSED',
+  GOOGLE_AUTH_DISABLED = 'GOOGLE_AUTH_DISABLED',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+}
+```
+
+### Google Auth Good Practices
+* Use HTTPS in production
+* Configure authorized domains
+* Limit connection attempts
+* Monitor authentication logs
+
+### Security
+* The Google Auth needs HTTPS in production.
+* The authorized domains must be configured correctly.
+* Google users will be automatically created in Firestore.
+
+### Firebase Auth for Google
+* To see the accounts in Firebase, go to Authentication > Users.
+* To export accounts: `firebase auth:export auth.json --project musiqueconnect-ac841`
+
+### Google Auth Configuration
+* The Google Auth configuration is almost perfect!
+* You can relunch the helper script: `npm run setup-google-auth`
+* Check the domains in Firebase
+* See the complete guide in `GUIDE_AUTHENTICATION_COMPLETE.md`
+
+### Firebase Auth Diagnostic
+* If you see “La connexion Google n’est pas activée”, refais les étapes 1 et 4.
+* If you see “Email ou mot de passe incorrect”, vérifie que l’utilisateur existe dans Firebase Auth.
+
+### Erreur 400
+* If you see an error 400, it probably means that the port 5184 is not authorized.
+
+## MICROSOFT AUTHENTICATION
+* Follow the Microsoft documentation to create an app in Azure AD and grant correct permissions.
+
+## FIREBASE HOSTING
+
+### Firebase Hosting + Auth
+* The domain `musiqueconnect.app` points correctly to Firebase.
+* To fix, go to [Firebase Console > Authentication > Sign-in method](https://console.firebase.google.com/project/musiqueconnect-ac841/authentication/providers) and follow the steps.
+* Activate the Google provider.
+* Add the authorized domains: `localhost`, `musiqueconnect.app`, `musiqueconnect-ac841.web.app`.
+
+## TESTING
+
+### General Testing
+- Test all functionalities thoroughly.
+- Use automated tests where possible (e.g., Jest).
+- Implement integration tests to verify interactions between different components.
+
+### Firebase Testing
+- Use the Firebase emulator suite for local testing.
+- Implement unit tests to verify individual functions and components.
+
+### Google Sheets
+- Test the Google Sheets API integration with a test spreadsheet.
+- Verify that data is synchronized correctly between your application and Google Sheets.
+
+## CODING STYLE
+
+### General
+- Use descriptive variable and function names.
+- Write comments to explain complex logic.
+- Keep functions and components small and focused.
+- Follow the principle of single responsibility.
+
+### Naming Conventions
+- Follow React conventions for component and prop naming.
+
+### Bonnes Pratiques
+- Sauvegarde automatique dans localStorage
+- Restauration au redémarrage
+- Synchronisation avec Firebase
+
+## UI & UX RULES
+
+### User Interface (UI)
+- Prioritize clarity and ease of use.
+- Ensure a consistent look and feel throughout the application.
+- Use a professional and modern design.
+
+### User Experience (UX)
+- Provide a seamless and intuitive user experience.
+- Minimize the number of steps required to complete a task.
+- Provide helpful feedback and guidance to the user.
+
+## DEPLOYMENT
+
+### Ensure Cloudflare Configuration
+Make sure your DNS records on Cloudflare are pointing to the correct server (either Vercel or Firebase).
+
+### Vercel
+- Deploy the application to Vercel for automated deployments.
+- Configure environment variables in Vercel.
+
+### Firebase Hosting
+- Deploy the application to Firebase Hosting for static assets.
+- Configure rewrite rules to route dynamic requests to Cloud Functions.
+
+## FIREBASE SECURITY RULES
+
+### Bonnes pratiques
+* Limitez les accès aux données en fonction des rôles (admin, teacher, student).
+* Validez les données avant de les enregistrer dans Firestore.
+* Utilisez des règles de sécurité Firestore pour protéger les données.
+
+## SECURITY
+
+### Bonnes Pratiques
+- ✅ Use HTTPS in production
+- ✅ Configure authorized domains
+- ✅ Limit connection attempts
+- ✅ Monitor authentication logs
+
+## TROUBLESHOOTING
+
+### General
+- If the file `tsconfig.dev.json` is missing or introuvable, copy the file `tsconfig.json` to `tsconfig.dev.json`.
+- If the files `tsconfig.json` and `tsconfig.dev.json` do not include the file `functions/src/index.ts`, add `"functions/src/**/*.ts"` in the tableau `"include"` of these files.
+- If there is an error with `Unknown at rule @tailwind`, verify that Tailwind CSS is properly configured.
+
+### Problème : "La connexion Google n'est pas activée"
+**Solution** :
+1. Vérifiez que Google est activé dans Firebase Console
+2. Vérifiez les domaines autorisés
+3. Redémarrez l'application
+
+### Problème : "Email ou mot de passe incorrect"
+**Solution** :
+1. Vérifiez que l'email/mot de passe est activé dans Firebase
+2. Vérifiez les règles Firestore
+3. Consultez les logs de la console
+
+### Problème : "Popup fermé par l'utilisateur"
+**Solution** :
+1. Autorisez les popups pour le site
+2. Vérifiez les bloqueurs de publicités
+3. Essayez en mode navigation privée
+
+### Problème : "Erreur de connexion réseau"
+**Solution** :
+1. Vérifiez votre connexion internet
+2. Vérifiez les règles de pare-feu
+3. Essayez avec un autre réseau
+
+### Problemes de CSS
+* S’assurer que la config Tailwind est correcte (plugins, purge, etc.).
+* Vider le cache du navigateur.
+
+### Missing API Keys
+* If you see "La connexion Google n'est pas activée", refais les étapes 1 et 4.
+* If you see "Email ou mot de passe incorrect", vérifie que l’utilisateur existe dans Firebase Auth.
+
+## TROUBLESHOOTING
+
+### Google Auth
+* Va dans la [console Firebase Auth](https://console.firebase.google.com/project/musiqueconnect-ac841/authentication/providers) et ajoute les domaines autorisés.
+* Si tu vois “La connexion Google n’est pas activée”, refais les étapes 1 et 4.
+* Si tu vois “Email ou mot de passe incorrect”, vérifie que l’utilisateur existe dans Firebase Auth.
+
+## UI & UX RULES
+
+### 1. Images
+* All images must be in the public folder
+
+### 2. Fonts
+* Use the correct font for all text
+
+### 3. Spacing
+* Use consistent spacing between elements
+
+### 4. Responsiveness
+* Make sure the application is responsive
+
+## CLEANUP RULES
+* During cleanup operations, prioritize data preservation and code integrity.
+* Avoid making changes that are not directly related to the cleanup task.
+* Always back up the code before performing any major cleanup operations.
+* Never assume that certain files or folders are unnecessary without proper investigation.
+* Avoid using destructive commands that could lead to data loss.
+* When encountering a project with duplicated project files (such as a root and a subfolder), default to using the root and archive the subfolder.
+
+## JavaScript
+
+### General
+
+* When there is an error with require, you must use import instead.
+
+## BudgetExpenseManager Component
+
+### Props
+* The component `BudgetExpenseManager` requires these props:
+  * `posteBudgetaire`: `string`
+  * `codeBudgetaire`: `string`
+  * `titre`: `string`
+
+## DASHBOARD ADMIN COMPONENT
+
+### General
+- The `AdminDashboard.tsx` component is comprehensive and modular.
+- It uses a tab system (`activeTab`) for displaying different sections.
+- The left sidebar provides quick navigation between categories/functionalities.
+- The right sidebar offers management blocks, calendar, profile access, etc.
+- The header displays the logo, the title of the active section, and the user profile.
+
+### Conditional Display Logic
+- Each tab (`activeTab`) displays a specific component or text.
+- Example :
+  - `activeTab === 'homework'` → `<HomeworkManager />`
+  - `activeTab === 'budget'` → (currently) the text "Créer mon premier budget" (to be improved for the first creation vs overview logic)
+- Titles and subtitles change dynamically depending on the active tab.
+
+### Budget Management
+- Logic for budget management is present, but the state management for "first budget" vs "overview" is not yet totally implemented.
+- The components `BudgetDashboard`, `BudgetOverview`, `BudgetExpenseManager` exist and seem advanced.
+- A condition should be implemented to display either the first budget creation or the overview, depending on the presence of budgets.
+
+### Advanced Components and Modularity
+- Many components are well-developed:
+  - `AppSettings`, `AssignmentManager`, `AnnouncementManager`, `GroupManager`, `StudentManager`, `SalesManager`, `GamificationManager`, etc.
+- State logic (groups, students, homework, etc.) is centralized via contexts (`useData`, `useAuth`, etc.), which is clean and scalable.
+- Lucide icons and Tailwind are well-used for the UI.
+
+### Correspondence with Diagram and Layout
+- The structure of the admin dashboard corresponds generally to what is planned in `Plansite.png` and `layout.png`:
+  - Lateral navigation, central panel, access management, role logic.
+- The visual is consistent with the target layout (header, sidebars, central, responsive).
+
+## UI & UX RULES
+
+### Sidebar Navigation (Admin Dashboard)
+- In the Admin Dashboard's right sidebar (Bloc 4: Gestion), a button for "Budget" is required for quick access to the Budget section. This aligns with the `Plansite.png` and `layout.png` diagrams. The button should navigate to the 'Budget' tab and be styled consistently with other sidebar buttons.
+
+### Admin Dashboard - First Budget Logic
+- When the `activeTab` is set to 'Budget', the UI must conditionally render content based on whether a budget has been created. If no budget exists, display a "Create your first budget" message or component. Otherwise, display the `BudgetOverview` or `BudgetDashboard` component. The AI needs to incorporate this conditional logic into the `AdminDashboard.tsx` component's rendering.
+
+### Sidebar Button
+- When adding a button to the sidebar, especially within the Admin Dashboard, use the `SidebarButton` component with the following properties:
+    - `icon`: The icon for the button (e.g., `<DollarSign className="w-5 h-5 text-emerald-500" />`).
+    - `label`: The text label for the button (e.g., `"Budget"`).
+    - `count`: The count to display next to the label (can be `null`).
+    - `active`: A boolean indicating whether the button is currently active (e.g., `activeTab==='budget'`).
+    - `onClick`: A function to call when the button is clicked (e.g., `()=>navigateToTab('budget')`).
+
+### Announcement Manager
+- Each line of selection de groupe (checkbox + nom) must have the same style visuel that the buttons of the sidebar :
+    - Effet flottant (ombre portée, élévation)
+    - Bordure, arrondi, fond blanc
+    - Effet de survol (légère élévation, couleur de fond)
+    - Padding and alignement identiques
+- When you coches a group (or "Tous les Groupes") :
+    - The line take a blue border and a very light blue background
+    - A validation icon (check) appears to the right
+    - The shadow is reinforced to accentuate the floating effect
+    - The transition is fluid between the states
+### General
+    - When you coches a group (or "Tous les Groupes") :
+        - The line take a blue border and a very light blue background
+        - A validation icon (check) appears to the right
+        - The shadow is reinforced to accentuate the floating effect
+        - The transition is fluid between the states
+
+## DASHBOARD ADMIN COMPONENT
+
+### TabType
+- The `TabType` type must include all possible tab values for the `AdminDashboard` component. Ensure that all tabs referenced in the component are represented in the `TabType` definition. As of 2025-07-23, the valid `TabType` values are:
+    - 'homework'
+    - 'messages'
+    - 'announcements'
+    - 'profile'
+    - 'groups'
+    - 'students'
+    - 'assignments'
+    - 'notes'
+    - 'inventory'
+    - 'sales'
+    - 'licenses'
+    - 'gamification'
+    - 'ia-quebec'
+    - 'tools'
+    - 'macbook-chat'
+    - 'ia'
+    - 'google-sheets'
+    - 'share-code'
+    - 'budget'
+
+## ASSIGNMENT MANAGER COMPONENT
+
+### UI
+- The search and filter bar should have the same style as the course notes manager:
+  - White background, border, shadow, padding, rounded corners.
+  - Horizontal alignment of elements: search field, filter, "Create Note" button on the right.
+- The "Créer un Devoir" button must be present in the search bar (to the right of the bar, with the filter).
+
+## COURSE NOTES MANAGER COMPONENT
+
+### UI
+- The search and filter bar should have the same style as the assignment manager:
+  - White background, border, shadow, padding, rounded corners.
+  - Horizontal alignment of elements: search field, filter, "Create Note" button on the right.
+
+## BUDGET DASHBOARD COMPONENT
+
+### UI
+
+- Instead of the "Initialiser les produits" button, use a "Fourniture (prix)" button.
+- This button should open a popup to edit:
+  - Category
+  - Product
+  - Quantity
+  - Price per unit
+- No field must be required.
+
+## SIDEBAR
+
+### bloc 2
+- the "Ventes totales" button must be renamed "Ventes"
+
+## SALES MANAGER COMPONENT
+### UI
+- Replace the "Initialiser les produits" button with a "Fourniture (prix)" button.
+- Clicking this button should open a popup to edit:
+  - Category
+  - Product
+  - Quantity
+  - Price per unit
+- No field must be required.
+
+## ANNOUNCEMENT MANAGER COMPONENT
+### UI
+- The popup of creating an announcement must have the possibility to choose multiple groups or all groups.
+- Each line of selection de groupe (checkbox + nom) must have the same style visuel that the buttons of the sidebar :
+    - Effet flottant (ombre portée, élévation)
+    - Bordure, arrondi, fond blanc
+    - Effet de survol (légère élévation, couleur de fond)
+    - Padding and alignement identiques
+- When you coches a group (or "Tous les Groupes")

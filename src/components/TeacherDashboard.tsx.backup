@@ -1,0 +1,1104 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Users, 
+  Music, 
+  MessageSquare, 
+  Megaphone, 
+  Plus, 
+  LogOut,
+  Filter,
+  Calendar,
+  Clock,
+  ChevronDown,
+  User,
+  Settings,
+  UserPlus,
+  BookOpen,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  DollarSign,
+  Share2,
+  Bell,
+  X,
+  Key,
+  Target,
+  Trophy,
+  AlertCircle,
+  RotateCcw,
+  Volume2,
+  Monitor,
+  ShoppingCart,
+  Wrench,
+  MessageCircle
+} from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext';
+import { useSettings } from '../contexts/SettingsContext';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import GroupManager from './GroupManager';
+import HomeworkManager from './HomeworkManager';
+import ChatCenter from './ChatCenter';
+import AnnouncementManager from './AnnouncementManager';
+import TeacherProfile from './TeacherProfile';
+import StudentManager from './StudentManager';
+import AssignmentManager from './AssignmentManager';
+import CourseNotesManager from './CourseNotesManager';
+import BudgetDashboard from './BudgetDashboard';
+import AppSettings from './AppSettings';
+import Logo from './Logo';
+import SalesManager from './SalesManager';
+import NotificationCenter from './NotificationCenter';
+import GamificationManager from './GamificationManager';
+import IA from './IA';
+import IAToolsManager from './IAToolsManager';
+import Metronome from './Metronome';
+import Tuner from './Tuner';
+import MacBookChat from './MacBookChat';
+import BudgetExpenseManager from './BudgetExpenseManager';
+import BudgetOverview from './BudgetOverview';
+
+type TabType = 'homework' | 'messages' | 'announcements' | 'profile' | 'groups' | 'students' | 'assignments' | 'notes' | 'sales' | 'finance' | 'licenses' | 'gamification' | 'ia-quebec' | 'tools' | 'macbook-chat' | 'overview' | 'fournitures' | 'evenements' | 'reparations' | 'specialistes';
+
+interface CalendarEvent {
+  type: string;
+  title: string;
+  color: string;
+}
+
+export default function TeacherDashboard() {
+  const [activeTab, setActiveTab] = useState<TabType | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [toolView, setToolView] = useState<'metronome' | 'tuner'>('metronome');
+  const { user, logout } = useAuth();
+  const { groups, homework, messages, announcements, assignments, courseNotes, purchases, getStudentsByGroup } = useData();
+  const { resetSettings } = useSettings();
+  const [showSettings, setShowSettings] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+  const [showGamificationMessageModal, setShowGamificationMessageModal] = useState(false);
+  const [showGamificationPointsModal, setShowGamificationPointsModal] = useState(false);
+  const [showGamificationChallengeModal, setShowGamificationChallengeModal] = useState(false);
+  const [selectedGamificationStudent, setSelectedGamificationStudent] = useState('');
+  const [gamificationMessageText, setGamificationMessageText] = useState('');
+  const [gamificationPointsToAward, setGamificationPointsToAward] = useState(10);
+  const [gamificationChallengeTitle, setGamificationChallengeTitle] = useState('');
+  const [gamificationChallengeDescription, setGamificationChallengeDescription] = useState('');
+  const [isInitializingData, setIsInitializingData] = useState(false);
+
+  const teacherGroups = groups.filter(group => group.teacherId === user?.id);
+  const selectedGroup = selectedGroupId ? groups.find(g => g.id === selectedGroupId) : null;
+  
+  // Charger les notifications
+  useEffect(() => {
+    if (user?.id) {
+      const loadNotificationCount = async () => {
+        try {
+          const { notificationService } = await import('../services/firebaseService');
+          const count = await notificationService.getUnreadCount(user.id);
+          setUnreadNotificationCount(count);
+        } catch (error) {
+          console.error('Erreur lors du chargement du compteur de notifications:', error);
+        }
+      };
+      
+      loadNotificationCount();
+      
+      // Mettre à jour le compteur toutes les 30 secondes
+      const interval = setInterval(loadNotificationCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.id]);
+  
+  // Bloquer le défilement quand le modal est ouvert
+  useEffect(() => {
+    if (showSettings) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Nettoyer lors du démontage du composant
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showSettings]);
+  
+  // Filter data based on selected group
+  const filteredHomework = selectedGroupId 
+    ? homework.filter(hw => hw.groupId === selectedGroupId)
+    : homework.filter(hw => hw.teacherId === user?.id);
+  
+  const filteredMessages = selectedGroupId
+    ? messages.filter(msg => msg.groupId === selectedGroupId)
+    : messages.filter(msg => msg.senderId === user?.id);
+    
+  const filteredAnnouncements = selectedGroupId
+    ? announcements.filter(ann => ann.groupId === selectedGroupId)
+    : announcements.filter(ann => ann.teacherId === user?.id);
+
+  const filteredAssignments = selectedGroupId
+    ? assignments.filter(assign => assign.groupIds.includes(selectedGroupId))
+    : assignments.filter(assign => assign.teacherId === user?.id);
+
+  const filteredCourseNotes = selectedGroupId
+    ? courseNotes.filter(note => !note.groupId || note.groupId === selectedGroupId)
+    : courseNotes.filter(note => note.teacherId === user?.id);
+
+  const filteredPurchases = selectedGroupId
+    ? purchases.filter(purchase => purchase.groupId === selectedGroupId)
+    : purchases.filter(purchase => purchase.teacherId === user?.id);
+
+  // Calendar functions
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const goToPreviousMonth = () => {
+    setCurrentDate(subMonths(currentDate, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(addMonths(currentDate, 1));
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  // Fonction pour initialiser les données de test
+  const initializeTestData = async () => {
+    setIsInitializingData(true);
+    try {
+      // Créer des élèves de test
+      const testStudents = [
+        { firstName: 'Emma', lastName: 'Martin', email: 'emma@test.com', instrument: 'Piano' },
+        { firstName: 'Lucas', lastName: 'Moreau', email: 'lucas@test.com', instrument: 'Guitare' },
+        { firstName: 'Sofia', lastName: 'Rodriguez', email: 'sofia@test.com', instrument: 'Violon' }
+      ];
+
+      // Créer un groupe de test
+      const testGroup = {
+        name: 'Groupe Test',
+        description: 'Groupe de test pour le chat',
+        teacherId: user?.id || '',
+        studentIds: []
+      };
+
+      // Simuler la création des données (en mode test)
+      console.log('🔄 Initialisation des données de test...');
+      
+      // Ajouter les élèves au groupe
+      const updatedGroup = {
+        ...testGroup,
+        studentIds: ['student-1', 'student-2', 'student-3']
+      };
+
+      // Forcer la mise à jour des données
+      setTimeout(() => {
+        console.log('✅ Données de test initialisées !');
+        setIsInitializingData(false);
+        alert('Données de test créées ! Vous pouvez maintenant vous connecter en tant qu\'étudiant pour tester le chat.');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Erreur lors de l\'initialisation:', error);
+      setIsInitializingData(false);
+      alert('Erreur lors de l\'initialisation des données de test.');
+    }
+  };
+
+  // Get events for a specific day
+  const getEventsForDay = (day: Date) => {
+    const events: CalendarEvent[] = [];
+    
+    // Add homework due dates
+    const homeworkDue = homework.filter(hw => 
+      hw.teacherId === user?.id && isSameDay(hw.dueDate, day)
+    );
+    events.push(...homeworkDue.map(hw => ({ type: 'homework', title: hw.title, color: 'bg-blue-500' })));
+    
+    // Add assignment due dates
+    const assignmentsDue = assignments.filter(assign => 
+      assign.teacherId === user?.id && isSameDay(assign.dueDate, day)
+    );
+    events.push(...assignmentsDue.map(assign => ({ type: 'assignment', title: assign.title, color: 'bg-green-500' })));
+    
+    return events;
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'homework':
+        return <HomeworkManager selectedGroupId={selectedGroupId} />;
+      case 'messages':
+        return <ChatCenter selectedGroupId={selectedGroupId} />;
+      case 'announcements':
+        return <AnnouncementManager selectedGroupId={selectedGroupId} />;
+      case 'profile':
+        return <TeacherProfile />;
+      case 'groups':
+        return <GroupManager selectedGroupId={selectedGroupId} onNavigateToStudents={handleNavigateToStudents} />;
+      case 'students':
+        return <StudentManager selectedGroupId={selectedGroupId} />;
+      case 'assignments':
+        return <AssignmentManager selectedGroupId={selectedGroupId} />;
+      case 'notes':
+        return <CourseNotesManager selectedGroupId={selectedGroupId} />;
+      case 'sales':
+        return <SalesManager selectedGroupId={selectedGroupId} />;
+      case 'finance':
+        return <BudgetDashboard selectedGroupId={selectedGroupId} />;
+      case 'fournitures':
+        return <BudgetExpenseManager 
+          posteBudgetaire="Fournitures"
+          codeBudgetaire="4001"
+          titre="Gestion des Fournitures"
+        />;
+      case 'evenements':
+        return <BudgetExpenseManager 
+          posteBudgetaire="Événements"
+          codeBudgetaire="4003"
+          titre="Gestion des Événements"
+        />;
+      case 'reparations':
+        return <BudgetExpenseManager 
+          posteBudgetaire="Réparations"
+          codeBudgetaire="4004"
+          titre="Gestion des Réparations"
+        />;
+      case 'specialistes':
+        return <div className="p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des Spécialistes</h2>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            {/* Contenu de la section des spécialistes */}
+          </div>
+        </div>;
+      case 'licenses':
+        return <div className="p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des Licences</h2>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Statut des licences */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-blue-900 mb-3">Statut des Licences</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Licences actives :</span>
+                    <span className="font-semibold text-blue-900">25/30</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Licences disponibles :</span>
+                    <span className="font-semibold text-green-600">5</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date d'expiration :</span>
+                    <span className="font-semibold text-orange-600">15 décembre 2024</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Acheter des licences */}
+              <div className="bg-green-50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-green-900 mb-3">Acheter des Licences</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input type="number" min="1" max="100" className="w-20 px-2 py-1 border border-gray-300 rounded" placeholder="1" />
+                    <span className="text-gray-600">licences supplémentaires</span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Prix : <span className="font-semibold">15$/licence/mois</span>
+                  </div>
+                  <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                    Acheter via Stripe
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Historique des achats */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Historique des Achats</h3>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <div>
+                      <span className="font-medium">+10 licences</span>
+                      <span className="text-gray-500 ml-2">15 novembre 2024</span>
+                    </div>
+                    <span className="text-green-600 font-semibold">150$</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <div>
+                      <span className="font-medium">+5 licences</span>
+                      <span className="text-gray-500 ml-2">1 octobre 2024</span>
+                    </div>
+                    <span className="text-green-600 font-semibold">75$</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>;
+      case 'gamification':
+        return <GamificationManager viewMode={viewMode} setViewMode={setViewMode} />;
+      case 'ia-quebec':
+        return <IAToolsManager />;
+      case 'tools':
+        return (
+          <div className="space-y-6">
+            {/* En-tête avec boutons de basculement */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-center">
+                  {/* Boutons de basculement */}
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setToolView('metronome')}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        toolView === 'metronome'
+                          ? 'bg-white text-[#1473AA] shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Volume2 className="w-4 h-4" />
+                      <span>Métronome</span>
+                    </button>
+                    <button
+                      onClick={() => setToolView('tuner')}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        toolView === 'tuner'
+                          ? 'bg-white text-[#1473AA] shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <Volume2 className="w-4 h-4" />
+                      <span>Accordeur</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Affichage conditionnel des outils */}
+            {toolView === 'metronome' ? <Metronome /> : <Tuner />}
+          </div>
+        );
+      case 'macbook-chat':
+        return <MacBookChat />;
+      case 'overview':
+        return <BudgetOverview />;
+      default:
+        return null;
+    }
+  };
+
+  const getGroupStats = (groupId: string) => {
+    const students = getStudentsByGroup(groupId);
+    const groupHomework = homework.filter(hw => hw.groupId === groupId);
+    const activeHomework = groupHomework.filter(hw => hw.dueDate > new Date());
+    const groupMessages = messages.filter(msg => msg.groupId === groupId);
+    const groupAnnouncements = announcements.filter(ann => ann.groupId === groupId);
+    const groupAssignments = assignments.filter(assign => assign.groupIds.includes(groupId));
+    
+    return {
+      studentCount: students.length,
+      homeworkCount: activeHomework.length,
+      messageCount: groupMessages.length,
+      announcementCount: groupAnnouncements.length,
+      assignmentCount: groupAssignments.length
+    };
+  };
+
+  // Calculate finance statistics
+  const totalSales = filteredPurchases
+    .filter(p => p.status === 'paid')
+    .reduce((total, purchase) => total + purchase.amount, 0);
+
+  const totalCredit = filteredPurchases
+    .filter(p => p.status === 'credit')
+    .reduce((total, purchase) => total + purchase.amount, 0);
+
+  // Simuler des étudiants pour la gamification
+  const gamificationStudents = [
+    { id: '1', name: 'Marie Dubois', avatar: 'https://ui-avatars.com/api/?name=Marie+Dubois&background=1473AA&color=fff&size=32' },
+    { id: '2', name: 'Lucas Martin', avatar: 'https://ui-avatars.com/api/?name=Lucas+Martin&background=10B981&color=fff&size=32' },
+    { id: '3', name: 'Sophie Bernard', avatar: 'https://ui-avatars.com/api/?name=Sophie+Bernard&background=8B5CF6&color=fff&size=32' },
+    { id: '4', name: 'Thomas Moreau', avatar: 'https://ui-avatars.com/api/?name=Thomas+Moreau&background=F59E0B&color=fff&size=32' },
+    { id: '5', name: 'Emma Leroy', avatar: 'https://ui-avatars.com/api/?name=Emma+Leroy&background=EF4444&color=fff&size=32' }
+  ];
+
+  // Fonctions pour les actions de gamification
+  const handleGamificationSendMessage = () => {
+    if (selectedGamificationStudent && gamificationMessageText.trim()) {
+      console.log(`Message envoyé à ${selectedGamificationStudent}: ${gamificationMessageText}`);
+      alert(`Message d'encouragement envoyé à ${gamificationStudents.find(s => s.id === selectedGamificationStudent)?.name}!`);
+      setShowGamificationMessageModal(false);
+      setGamificationMessageText('');
+      setSelectedGamificationStudent('');
+    }
+  };
+
+  const handleGamificationAwardPoints = () => {
+    if (selectedGamificationStudent && gamificationPointsToAward > 0) {
+      console.log(`${gamificationPointsToAward} points attribués à ${selectedGamificationStudent}`);
+      alert(`${gamificationPointsToAward} points attribués à ${gamificationStudents.find(s => s.id === selectedGamificationStudent)?.name}!`);
+      setShowGamificationPointsModal(false);
+      setGamificationPointsToAward(10);
+      setSelectedGamificationStudent('');
+    }
+  };
+
+  const handleGamificationCreateChallenge = () => {
+    if (gamificationChallengeTitle.trim() && gamificationChallengeDescription.trim()) {
+      console.log(`Challenge créé: ${gamificationChallengeTitle}`);
+      alert(`Challenge "${gamificationChallengeTitle}" créé avec succès!`);
+      setShowGamificationChallengeModal(false);
+      setGamificationChallengeTitle('');
+      setGamificationChallengeDescription('');
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  // Fonction pour naviguer vers l'onglet Élèves
+  const handleNavigateToStudents = (groupId?: string) => {
+    setActiveTab('students');
+    if (groupId) {
+      setSelectedGroupId(groupId);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* En-tête */}
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <img src="/logos/HeaderLogo.png" alt="Header Logo" className="h-10" />
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src={user?.picture || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}`}
+                  alt="Profil"
+                  className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-700 shadow-sm"
+                />
+                <div>
+                  <p className="font-semibold text-gray-800 dark:text-white text-sm">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {user?.role === 'owner' ? '👑 Propriétaire' : 
+                     user?.role === 'admin' ? '👑 Administrateur' : 'Enseignant'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-blue-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadNotificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] flex items-center justify-center">
+                    {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setShowSettings(true)}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-blue-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+              
+              {/* Bouton de retour au propriétaire si on est en mode test */}
+              {user?.role !== 'owner' && localStorage.getItem('tempOwner') && (
+                <button
+                  onClick={() => {
+                    // Nettoyer tous les utilisateurs temporaires sauf le propriétaire
+                    localStorage.removeItem('tempStudent');
+                    localStorage.removeItem('tempAdmin');
+                    localStorage.removeItem('tempTeacher');
+                    // Recharger pour revenir au propriétaire
+                    window.location.reload();
+                  }}
+                  className="px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 text-sm flex items-center gap-2"
+                  title="Retour au mode propriétaire"
+                >
+                  👑 Retour Propriétaire
+                </button>
+              )}
+              
+              <button
+                onClick={() => {
+                  // Créer un utilisateur propriétaire temporaire et le stocker
+                  const tempOwner = {
+                    id: 'test-owner-123',
+                    firstName: 'Propriétaire',
+                    lastName: 'Demo',
+                    email: 'proprietaire.demo@test.com',
+                    role: 'owner' as const,
+                    subscriptionStatus: 'active',
+                    isActive: true,
+                    createdAt: new Date(),
+                    picture: null
+                  };
+                  
+                  console.log('Création utilisateur propriétaire temporaire:', tempOwner);
+                  localStorage.setItem('tempOwner', JSON.stringify(tempOwner));
+                  // Forcer le rechargement de la page pour que le contexte détecte le changement
+                  window.location.reload();
+                }}
+                className="px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 text-sm"
+                title="Tester le dashboard propriétaire (temporaire)"
+              >
+                👑 Test Propriétaire
+              </button>
+              <button
+                onClick={logout}
+                className="btn-outline flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Panneau de notifications */}
+      {showNotifications && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Centre de Notifications</h3>
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto max-h-[calc(80vh-120px)]">
+              <NotificationCenter />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Colonne de gauche - Sélecteur de groupe et Catégories */}
+          <div className="lg:w-64 flex-shrink-0 space-y-6">
+            {/* Sélecteur de groupe */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Filter className="w-5 h-5 text-primary-500" />
+                Sélectionner un Groupe
+              </h3>
+              
+              <div className="relative">
+                <select
+                  value={selectedGroupId}
+                  onChange={(e) => setSelectedGroupId(e.target.value)}
+                  className="w-full input appearance-none pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value="">Tous les Groupes</option>
+                  {teacherGroups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {selectedGroup && (
+                <div className="mt-4 p-3 bg-primary-50 rounded-lg">
+                  <p className="text-sm font-medium text-primary-900">Groupe {selectedGroup.name}</p>
+                  <p className="text-xs text-primary-700 mt-1">{selectedGroup.description}</p>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-primary-600">
+                    <span>{getStudentsByGroup(selectedGroup.id).length} élèves</span>
+                    <span>{getGroupStats(selectedGroup.id).homeworkCount} pratiques</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Boutons de catégories */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Catégories</h3>
+              
+              {/* Panneau spécial pour le propriétaire */}
+              {user?.role === 'owner' && (
+                <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-2 border-purple-300 shadow-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs">👑</span>
+                    </div>
+                    <h4 className="font-bold text-purple-900 text-sm">
+                      Mode Propriétaire - Démonstration
+                    </h4>
+                  </div>
+                  <p className="text-xs text-purple-700 mb-4">
+                    Accès complet à toutes les fonctionnalités. Testez chaque rôle pour les démonstrations.
+                  </p>
+                  
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    <button
+                      onClick={() => {
+                        const tempTeacher = {
+                          id: 'demo-teacher-123',
+                          firstName: 'Enseignant',
+                          lastName: 'Demo',
+                          email: 'enseignant.demo@test.com',
+                          role: 'teacher' as const,
+                          subscriptionStatus: 'active',
+                          isActive: true,
+                          createdAt: new Date(),
+                          picture: null
+                        };
+                        localStorage.setItem('tempTeacher', JSON.stringify(tempTeacher));
+                        window.location.reload();
+                      }}
+                      className="px-3 py-2 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                    >
+                      👨‍🏫 Enseignant
+                    </button>
+                    <button
+                      onClick={() => {
+                        const tempStudent = {
+                          id: 'demo-student-123',
+                          firstName: 'Élève',
+                          lastName: 'Demo',
+                          email: 'eleve.demo@test.com',
+                          role: 'student' as const,
+                          instrument: 'Piano',
+                          subscriptionStatus: 'active',
+                          isActive: true,
+                          createdAt: new Date(),
+                          picture: null
+                        };
+                        localStorage.setItem('tempStudent', JSON.stringify(tempStudent));
+                        window.location.href = '/student';
+                      }}
+                      className="px-3 py-2 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 transition-colors font-medium"
+                    >
+                      🎵 Élève
+                    </button>
+                    <button
+                      onClick={() => {
+                        const tempAdmin = {
+                          id: 'demo-admin-123',
+                          firstName: 'Admin',
+                          lastName: 'Demo',
+                          email: 'admin.demo@test.com',
+                          role: 'admin' as const,
+                          subscriptionStatus: 'active',
+                          isActive: true,
+                          createdAt: new Date(),
+                          picture: null
+                        };
+                        localStorage.setItem('tempAdmin', JSON.stringify(tempAdmin));
+                        window.location.reload();
+                      }}
+                      className="px-3 py-2 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-colors font-medium"
+                    >
+                      👑 Admin
+                    </button>
+                  </div>
+                  
+                  {/* Statistiques rapides pour le propriétaire */}
+                  <div className="pt-3 border-t border-purple-200">
+                    <h5 className="text-xs font-bold text-purple-800 mb-2">📊 Statistiques Globales</h5>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-white bg-opacity-60 rounded p-2 border border-purple-200">
+                        <div className="text-purple-600 font-medium">Enseignants</div>
+                        <div className="font-bold text-purple-900">3 actifs</div>
+                      </div>
+                      <div className="bg-white bg-opacity-60 rounded p-2 border border-purple-200">
+                        <div className="text-purple-600 font-medium">Élèves</div>
+                        <div className="font-bold text-purple-900">24 inscrits</div>
+                      </div>
+                      <div className="bg-white bg-opacity-60 rounded p-2 border border-purple-200">
+                        <div className="text-purple-600 font-medium">Groupes</div>
+                        <div className="font-bold text-purple-900">8 créés</div>
+                      </div>
+                      <div className="bg-white bg-opacity-60 rounded p-2 border border-purple-200">
+                        <div className="text-purple-600 font-medium">Revenus</div>
+                        <div className="font-bold text-purple-900">2,450$</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-3">
+                <button
+                  onClick={() => setActiveTab('homework')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'homework'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Music className="w-5 h-5" />
+                    <span className="font-medium">Pratique</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'homework' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {filteredHomework.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('assignments')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'assignments'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5" />
+                    <span className="font-medium">Devoir</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'assignments' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {filteredAssignments.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('notes')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'notes'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="w-5 h-5" />
+                    <span className="font-medium">Notes de cours</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'notes' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {filteredCourseNotes.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('messages')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'messages'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="w-5 h-5" />
+                    <span className="font-medium">Messages</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'messages' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {filteredMessages.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('announcements')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'announcements'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Megaphone className="w-5 h-5" />
+                    <span className="font-medium">Annonces</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'announcements' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {filteredAnnouncements.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('groups')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'groups'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5" />
+                    <span className="font-medium">Groupes</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'groups' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {teacherGroups.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('students')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'students'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <User className="w-5 h-5" />
+                    <span className="font-medium">Élèves</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'students' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {getGroupStats(selectedGroupId).studentCount}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('sales')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'sales'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <ShoppingCart className="w-5 h-5" />
+                    <span className="font-medium">Ventes</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'sales' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    {filteredPurchases.length}
+                  </span>
+                </button>
+
+                {/* Bouton Budget uniquement pour l'administrateur */}
+                <button
+                  onClick={() => setActiveTab('finance')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'finance'
+                      ? 'bg-green-500 text-white border border-green-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <DollarSign className="w-5 h-5" />
+                    <span className="font-medium">Budget</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'finance' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    💰
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('gamification')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'gamification'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Trophy className="w-5 h-5" />
+                    <span className="font-medium">Gamification</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'gamification' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    🏆
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('ia-quebec')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'ia-quebec'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Brain className="w-5 h-5" />
+                    <span className="font-medium">IA Québec</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'ia-quebec' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    🤖
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('tools')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'tools'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Wrench className="w-5 h-5" />
+                    <span className="font-medium">Outils</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'tools' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    🎵
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('macbook-chat')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'macbook-chat'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="font-medium">Chat MacBook</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'macbook-chat' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    💬
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 transform ${
+                    activeTab === 'profile'
+                      ? 'bg-primary-500 text-white border border-primary-500 shadow-lg scale-95'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:scale-105'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <User className="w-5 h-5" />
+                    <span className="font-medium">Profil</span>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    activeTab === 'profile' 
+                      ? 'bg-white bg-opacity-20 text-white' 
+                      : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  }`}>
+                    👤
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Colonne de droite - Contenu principal */}
+          <div className="flex-1">
+            {/* Menu horizontal des grandes lignes budgétaires */}
+            <div className="flex space-x-2 mb-4">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'overview' || !activeTab
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Vue d'ensemble
+              </button>
+              <button
+                onClick={() => setActiveTab('fournitures')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'fournitures'
+                    ? 'bg-green-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Fournitures
+              </button>
+              <button
+                onClick={() => setActiveTab('evenements')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'evenements'
+                    ? 'bg-purple-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Événements
+              </button>
+              <button
+                onClick={() => setActiveTab('reparations')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'reparations'
+                    ? 'bg-orange-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Réparations
+              </button>
+              <button
+                onClick={() => setActiveTab('specialistes')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'specialistes'
+                    ? 'bg-red-600 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Spécialistes
+              </button>
+            </div>
+
+            {/* Contenu principal */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 min-h-[600px]">
+              {renderTabContent()}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
