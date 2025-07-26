@@ -328,21 +328,13 @@ export class GoogleSheetsService {
     groups: any[];
   }> {
     try {
-      const result = {
-        students: [],
-        budget: [],
-        evaluations: [],
-        assignments: [],
-        groups: [],
-      };
-
-      // Importer chaque type de données
       const dataTypes = ['students', 'budget', 'evaluations', 'assignments', 'groups'];
+      const result: any = {};
       
       for (const dataType of dataTypes) {
         try {
           const data = await this.syncFromGoogleSheets(spreadsheetId, dataType);
-          result[dataType as keyof typeof result] = data;
+          result[dataType] = data;
         } catch (error) {
           console.warn(`Impossible d'importer ${dataType}:`, error);
         }
