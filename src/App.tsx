@@ -30,17 +30,11 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const location = useLocation();
   
-  console.log('🔍 === PRIVATE ROUTE ===');
-  console.log('👤 Utilisateur:', user);
-  console.log('📍 Location:', location.pathname);
-  
   if (!user) {
-    console.log('❌ Pas d\'utilisateur, redirection vers /login');
-    // Si pas connecté, redirige vers /login
+    // If not logged in, redirect to /login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  console.log('✅ Utilisateur connecté, affichage du contenu');
   return <>{children}</>;
 }
 
@@ -48,44 +42,16 @@ function AppRoutes() {
   const { user } = useAuth();
   const location = useLocation();
 
-  console.log('🔍 === APP ROUTES ===');
-  console.log('👤 Utilisateur:', user);
-  console.log('📍 Location actuelle:', location.pathname);
-
   return (
     <Routes>
       <Route path="/" element={
-        (() => {
-          if (user) {
-            console.log('🔄 Redirection de / vers /dashboard car utilisateur connecté');
-            return <Navigate to="/dashboard" replace />;
-          } else {
-            console.log('🏠 Affichage de la page d\'accueil car pas d\'utilisateur');
-            return <MusiqueConnectHome />;
-          }
-        })()
+        user ? <Navigate to="/dashboard" replace /> : <MusiqueConnectHome />
       } />
       <Route path="/login" element={
-        (() => {
-          if (user) {
-            console.log('🔄 Redirection de /login vers /dashboard car utilisateur connecté');
-            return <Navigate to="/dashboard" replace />;
-          } else {
-            console.log('🔐 Affichage de la page de connexion');
-            return <LoginPage />;
-          }
-        })()
+        user ? <Navigate to="/dashboard" replace /> : <LoginPage />
       } />
       <Route path="/signup" element={
-        (() => {
-          if (user) {
-            console.log('🔄 Redirection de /signup vers /dashboard car utilisateur connecté');
-            return <Navigate to="/dashboard" replace />;
-          } else {
-            console.log('📝 Affichage de la page d\'inscription');
-            return <SignupPage />;
-          }
-        })()
+        user ? <Navigate to="/dashboard" replace /> : <SignupPage />
       } />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
@@ -164,12 +130,7 @@ function AppRoutes() {
       <Route path="/budget-dashboard" element={<BudgetDashboard />} />
       
       {/* Redirection catch-all vers la landing */}
-      <Route path="*" element={
-        (() => {
-          console.log('🔄 Route non trouvée, redirection vers /');
-          return <Navigate to="/" replace />;
-        })()
-      } />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

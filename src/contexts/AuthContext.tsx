@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User } from '../types';
 import { userService } from '../services/firebaseService';
-import { checkSchoolAccess, createSchoolUser, validateDomain } from '../services/domainService';
+import { DomainService } from '../services/domainService';
 import { secureLog } from '../utils/security';
 import { auth } from '../config/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -464,13 +464,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       // Validation du domaine
-      if (!validateDomain(domain)) {
+      if (!DomainService.validateDomain(domain)) {
         console.log('Domaine invalide:', domain);
         return false;
       }
 
       // Vérification de l'accès à l'école
-      const accessCheck = checkSchoolAccess(domain);
+      const accessCheck = DomainService.checkSchoolAccess(domain);
       
       if (!accessCheck.hasAccess) {
         console.log('Accès refusé pour le domaine:', domain, 'Raison:', accessCheck.reason);

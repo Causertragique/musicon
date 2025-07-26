@@ -11,7 +11,8 @@ import {
   orderBy,
   serverTimestamp,
   Timestamp,
-  writeBatch
+  writeBatch,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { User, Group, Homework, Message, Announcement, Assignment, CourseNote, Purchase } from '../types';
@@ -94,6 +95,14 @@ export const userService = {
       createdAt: serverTimestamp()
     });
     return docRef.id;
+  },
+
+  async createWithId(id: string, userData: Omit<User, 'id'>): Promise<void> {
+    const docRef = doc(db, 'users', id);
+    await setDoc(docRef, {
+      ...userData,
+      createdAt: serverTimestamp()
+    });
   },
 
   async update(id: string, updates: Partial<User>): Promise<void> {
